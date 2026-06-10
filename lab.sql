@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
+<<<<<<< HEAD
 -- Tiempo de generación: 10-06-2026 a las 06:29:10
+=======
+-- Tiempo de generación: 10-06-2026 a las 04:32:07
+>>>>>>> 2aa0173cd6d8b90d6ae1c59634240b93361c6478
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -139,6 +143,7 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+<<<<<<< HEAD
 -- Volcado de datos para la tabla `usuarios`
 --
 
@@ -147,6 +152,8 @@ INSERT INTO `usuarios` (`id`, `codigo`, `nombre`, `email`, `rol`, `carrera`, `de
 (5, 'ADMIN002', 'Administrador', 'admin@lab.com', 'admin', 'Ingeniería', 'Sistemas', '71234567', '$2b$12$wMZUyIMTorI4L9hez3v3J.i8DT6Ejyi2W8JuOjZ3NHghulABSStxG', 1, NULL, '2026-06-10 04:24:16');
 
 --
+=======
+>>>>>>> 2aa0173cd6d8b90d6ae1c59634240b93361c6478
 -- Índices para tablas volcadas
 --
 
@@ -248,7 +255,11 @@ ALTER TABLE `reservas`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
+<<<<<<< HEAD
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+=======
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+>>>>>>> 2aa0173cd6d8b90d6ae1c59634240b93361c6478
 
 --
 -- Restricciones para tablas volcadas
