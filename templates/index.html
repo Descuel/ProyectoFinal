@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Laboratorios</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            Sistema de Laboratorios
+        </div>
+        <button class="login-btn" onclick="window.location.href='/login'">Iniciar Sesión</button>
+    </nav>
+    <main class="contenedor">
+        <section class="bienvenida">
+            <h1>Sistema de Gestión de Laboratorios de Computación</h1>
+            <p>
+                Plataforma destinada a la administración de edificios,
+                laboratorios, equipos, reservas e incidencias dentro
+                de los laboratorios de computación.
+            </p>
+        </section>
+        <section class="edificios">
+    <h2 class="titulo-seccion">
+        Edificios Disponibles
+    </h2>
+    <div class="edificios-grid">
+        <div class="edificio-card">
+            <img src="{{ url_for('static', filename='img/edificio1.jpg') }}">
+            <div class="edificio-info">
+                <h3>FACULTAD DE INFORMATICA</h3>
+                <p>
+                    Creada en 1973, la primera Carrera en el Sistema Universitario Boliviano, pionera en el campo de la Informática con el objetivo primordial de la formación profesional con excelencia. En su plan curricular se encuentran asignaturas de Ciencias de la Computación, Informática, Matemáticas, Sistemas y Gestión conforme a las necesidades del mercado profesional.
+                </p>
+                <button>Ver Detalles</button>
+            </div>
+        </div>
+        <div class="edificio-card">
+            <img src="{{ url_for('static', filename='img/edificio2.jpg') }}">
+            <div class="edificio-info">
+                <h3>LASIN - Laboratorio superior de informatica</h3>
+                <p>
+                    En LASIN, nos comprometemos a ofrecer únicamente la mejor educación en informática, facilitando el acceso a recursos tecnológicos de última generación y un entorno de aprendizaje efectivo.
+                </p>
+                <button>Ver Detalles</button>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="modulos">
+    <div class="tarjeta">
+        <h2>Laboratorios</h2>
+        <p>Gestión de laboratorios disponibles.</p>
+        <button>Ver</button>
+    </div>
+    <div class="tarjeta">
+        <h2>Equipos</h2>
+        <p>Control y seguimiento de equipos informáticos.</p>
+        <button>Ver</button>
+    </div>
+    <div class="tarjeta">
+        <h2>Reservas</h2>
+        <p>Administración de solicitudes y reservas.</p>
+        <button>Ver</button>
+    </div>
+    <div class="tarjeta">
+        <h2>Incidencias</h2>
+        <p>Registro y seguimiento de problemas reportados.</p>
+        <button>Ver</button>
+    </div>
+</section>
+    </main>
+    <footer>
+        Sistema de Gestión de Laboratorios
+    </footer>
+</body>
+</html>

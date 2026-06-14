@@ -5,6 +5,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
+from flask import render_template
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,27 @@ app.config['MYSQL_DB'] = 'lab'
 
 mysql = MySQL(app)
 jwt = JWTManager(app)
+#Frontend
+
+@app.route('/')
+def inicio():
+    return render_template('index.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/edificios-admin')
+def edificios_page():
+    return render_template('edificios.html')
+
+@app.route('/laboratorios-admin')
+def laboratorios_page():
+    return render_template('laboratorios.html')
 
 # registrar usuario
 @app.route('/registrar', methods=['POST'])
@@ -48,7 +70,7 @@ def registrar():
 
 
 # login
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     codigo = data.get("codigo")

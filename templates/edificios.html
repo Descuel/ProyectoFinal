@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Edificios</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/edificios.css') }}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        Sistema de Laboratorios
+    </div>
+    <button class="volver"
+            onclick="window.location.href='/dashboard'">
+        Volver
+    </button>
+</nav>
+<main class="contenedor">
+    <section class="titulo">
+        <h1>Gestión de Edificios</h1>
+        <p>Administrar edificios registrados.</p>
+    </section>
+    <section class="acciones">
+        <button onclick="mostrarFormulario()">
+            Registrar
+        </button>
+        <button onclick="editarEdificio()">
+            Editar
+        </button>
+        <button onclick="eliminarEdificio()">
+            Eliminar
+        </button>
+    </section>
+    <section id="formulario" class="formulario oculto">
+        <h2>Nuevo Edificio</h2>
+        <input type="text"
+               id="nombre"
+               placeholder="Nombre">
+        <input type="text"
+               id="direccion"
+               placeholder="Dirección">
+        <input type="number"
+               id="telefono"
+               placeholder="Teléfono">
+        <button onclick="guardarEdificio()">
+            Guardar
+        </button>
+    </section>
+    <section class="tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody id="tablaEdificios">
+            </tbody>
+        </table>
+    </section>
+</main>
+<script>
+function mostrarFormulario(){
+    document.getElementById("formulario")
+            .classList.toggle("oculto");
+}
+function listarEdificios(){
+    fetch("/edificios")
+    .then(res => res.json())
+    .then(data => {
+        let filas = "";
+        data.forEach(edificio => {
+            filas += `
+            <tr>
+                <td>${edificio.id}</td>
+                <td>${edificio.nombre}</td>
+                <td>${edificio.direccion}</td>
+                <td>${edificio.telefono}</td>
+            </tr>
+            `;
+        });
+        document.getElementById("tablaEdificios")
+                .innerHTML = filas;
+    });
+}
+function guardarEdificio(){
+    const token = localStorage.getItem("token");
+    fetch("/edificios", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            nombre: document.getElementById("nombre").value,
+            direccion: document.getElementById("direccion").value,
+            telefono: document.getElementById("telefono").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarEdificios();
+    });
+}
+function editarEdificio(){
+    const id = prompt("ID del edificio:");
+    const nombre = prompt("Nuevo nombre:");
+    const direccion = prompt("Nueva dirección:");
+    const telefono = prompt("Nuevo teléfono:");
+    const token = localStorage.getItem("token");
+    fetch(`/edificios/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            nombre,
+            direccion,
+            telefono
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarEdificios();
+    });
+}
+function eliminarEdificio(){
+    const id = prompt("ID del edificio:");
+    const token = localStorage.getItem("token");
+    fetch(`/edificios/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarEdificios();
+    });
+}
+listarEdificios();
+</script>
+</body>
+</html>

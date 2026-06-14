@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Laboratorios</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/laboratorios.css') }}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        Sistema de Laboratorios
+    </div>
+    <button class="volver"
+            onclick="window.location.href='/dashboard'">
+        Volver
+    </button>
+</nav>
+<main class="contenedor">
+    <section class="titulo">
+        <h1>Gestión de Laboratorios</h1>
+        <p>Administrar laboratorios registrados.</p>
+    </section>
+    <section class="acciones">
+    <button onclick="mostrarFormulario()">
+        Registrar
+    </button>
+
+    <button onclick="editarLaboratorio()">
+        Editar
+    </button>
+
+    <button onclick="eliminarLaboratorio()">
+        Eliminar
+    </button>
+</section>
+    <section id="formulario" class="formulario oculto">
+    <h2>Nuevo Laboratorio</h2>
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="number" id="piso_id" placeholder="ID Piso">
+    <input type="number" id="capacidad" placeholder="Capacidad">
+    <input type="number" id="num_equipos" placeholder="Número de Equipos">
+    <input type="text" id="especialidad" placeholder="Especialidad">
+    <input type="text" id="estado" placeholder="Estado">
+    <button onclick="guardarLaboratorio()">
+        Guardar
+    </button>
+    </section>
+    <section class="tabla">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Piso</th>
+                <th>Capacidad</th>
+                <th>Equipos</th>
+                <th>Especialidad</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="tablaLaboratorios">
+        </tbody>
+    </table>
+    </section>
+</main>
+<script>
+function mostrarFormulario(){
+    document.getElementById("formulario").classList.toggle("oculto");
+}
+function listarLaboratorios(){
+    fetch("/laboratorios")
+    .then(res => res.json())
+    .then(data => {
+        let filas = "";
+        data.forEach(lab => {
+            filas += `
+            <tr>
+                <td>${lab.id}</td>
+                <td>${lab.nombre}</td>
+                <td>${lab.piso_id}</td>
+                <td>${lab.capacidad}</td>
+                <td>${lab.num_equipos}</td>
+                <td>${lab.especialidad}</td>
+                <td>${lab.estado}</td>
+            </tr>
+            `;
+        });
+        document.getElementById("tablaLaboratorios").innerHTML = filas;
+    });
+}
+function guardarLaboratorio(){
+    const token = localStorage.getItem("token");
+    fetch("/laboratorios", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            nombre: document.getElementById("nombre").value,
+            piso_id: document.getElementById("piso_id").value,
+            capacidad: document.getElementById("capacidad").value,
+            num_equipos: document.getElementById("num_equipos").value,
+            especialidad: document.getElementById("especialidad").value,
+            estado: document.getElementById("estado").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarLaboratorios();
+    });
+}
+function editarLaboratorio(){
+    const id = prompt("ID del laboratorio:");
+    const nombre = prompt("Nuevo nombre:");
+    const piso_id = prompt("Nuevo piso:");
+    const capacidad = prompt("Nueva capacidad:");
+    const num_equipos = prompt("Número de equipos:");
+    const especialidad = prompt("Especialidad:");
+    const estado = prompt("Estado:");
+    const token = localStorage.getItem("token");
+    fetch(`/laboratorios/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            nombre,
+            piso_id,
+            capacidad,
+            num_equipos,
+            especialidad,
+            estado
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarLaboratorios();
+    });
+}
+function eliminarLaboratorio(){ 
+    const id = prompt("ID del laboratorio:");
+    const token = localStorage.getItem("token");
+    fetch(`/laboratorios/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje);
+        listarLaboratorios();
+    });
+}
+listarLaboratorios();
+</script>
+</body>
+</html>

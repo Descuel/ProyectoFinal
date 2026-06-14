@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administracion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        Sistema de Laboratorios
+    </div>
+    <div class="usuario">
+        Administrador
+    </div>
+</nav>
+<main class="contenedor">
+    <section class="titulo">
+        <h1>Panel de Administración</h1>
+        <p>Resumen general del sistema.</p>
+    </section>
+    <section class="estadisticas">
+        <div class="card">
+            <p>Laboratorios</p>
+        </div>
+        <div class="card">
+            <p>Equipos</p>
+        </div>
+        <div class="card">
+            <p>Reservas Activas</p>
+        </div>
+        <div class="card">
+            <p>Incidencias</p>
+        </div>
+    </section>
+    <section class="modulos">
+        <div class="modulo">
+            <h3>Edificios</h3>
+            <p>Gestionar edificios registrados.</p>
+            <button onclick="window.location.href='/edificios-admin'">Ingresar</button>
+        </div>
+        <div class="modulo">
+            <h3>Laboratorios</h3>
+            <p>Administrar laboratorios.</p>
+            <button onclick="window.location.href='/laboratorios-admin'">Ingresar</button>
+        </div>
+        <div class="modulo">
+            <h3>Equipos</h3>
+            <p>Control de equipos informáticos.</p>
+            <button>Ingresar</button>
+        </div>
+        <div class="modulo">
+            <h3>Reservas</h3>
+            <p>Administrar solicitudes y reservas.</p>
+            <button>Ingresar</button>
+        </div>
+        <div class="modulo">
+            <h3>Incidencias</h3>
+            <p>Seguimiento de reportes.</p>
+            <button>Ingresar</button>
+        </div>
+    </section>
+    <section class="actividad">
+        
+    </section>
+</main>
+</body>
+</html>

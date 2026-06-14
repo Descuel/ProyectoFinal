@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+
+```
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+```
+
+</head>
+<body>
+
+```
+<div class="login-container">
+
+    <div class="login-card">
+
+        <h1>Sistema de Laboratorios</h1>
+
+        <p class="subtitulo">
+            Ingrese sus credenciales para acceder al sistema
+        </p>
+
+        <form id="loginForm">
+
+            <label for="codigo">Usuario</label>
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Ingrese su código"
+                required
+            >
+
+            <label for="password">Contraseña</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Ingrese su contraseña"
+                required
+            >
+
+            <button type="button" onclick="login()">
+                Iniciar Sesión
+            </button>
+
+        </form>
+
+        <div id="mensaje"></div>
+
+    </div>
+
+</div>
+
+<script>
+function login() {
+
+    const codigo = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const mensaje = document.getElementById("mensaje");
+
+    fetch("/api/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            codigo: codigo,
+            password: password
+        })
+    })
+    .then(res =>
+        res.json().then(data => ({
+            status: res.status,
+            data: data
+        }))
+    )
+    .then(resultado => {
+
+        if(resultado.status === 200){
+
+            localStorage.setItem("token", resultado.data.token);
+
+            mensaje.innerHTML = "Inicio de sesión correcto";
+            mensaje.className = "mensaje-exito";
+
+            setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 1000);
+
+        }else{
+
+            mensaje.innerHTML = resultado.data.mensaje;
+            mensaje.className = "mensaje-error";
+
+        }
+
+    })
+    .catch(error => {
+
+        console.error(error);
+
+        mensaje.innerHTML = "Error al conectar con el servidor";
+        mensaje.className = "mensaje-error";
+
+    });
+
+}
+</script>
+
+</body>
+</html>
