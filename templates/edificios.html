@@ -4,149 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Edificios</title>
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/edificios.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edificios.css') }}">
+    <style>
+        .mensaje-flotante {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+        .mensaje-error { background: #f44336; }
+        .formulario input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .oculto { display: none; }
+        button { cursor: pointer; }
+        .btn-editar { background: #ffc107; color: #000; border: none; padding: 5px 10px; margin-right: 5px; border-radius: 4px; }
+        .btn-eliminar { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; }
+        .acciones button { background: #1e3a5f; color: white; border: none; padding: 12px 18px; border-radius: 5px; margin-right: 10px; }
+    </style>
 </head>
 <body>
 <nav class="navbar">
-    <div class="logo">
-        Sistema de Laboratorios
-    </div>
-    <button class="volver"
-            onclick="window.location.href='/dashboard'">
-        Volver
-    </button>
+    <div class="logo">Sistema de Laboratorios</div>
+    <button class="volver" onclick="window.location.href='/dashboard'">Volver</button>
 </nav>
 <main class="contenedor">
     <section class="titulo">
         <h1>Gestión de Edificios</h1>
         <p>Administrar edificios registrados.</p>
     </section>
+
+    <div id="mensaje" class="mensaje-flotante"></div>
+
     <section class="acciones">
-        <button onclick="mostrarFormulario()">
-            Registrar
-        </button>
-        <button onclick="editarEdificio()">
-            Editar
-        </button>
-        <button onclick="eliminarEdificio()">
-            Eliminar
-        </button>
+        <button onclick="mostrarFormularioNuevo()">+ Nuevo Edificio</button>
     </section>
+
+    <!-- Formulario para crear/editar (oculto inicialmente) -->
     <section id="formulario" class="formulario oculto">
-        <h2>Nuevo Edificio</h2>
-        <input type="text"
-               id="nombre"
-               placeholder="Nombre">
-        <input type="text"
-               id="direccion"
-               placeholder="Dirección">
-        <input type="number"
-               id="telefono"
-               placeholder="Teléfono">
-        <button onclick="guardarEdificio()">
-            Guardar
-        </button>
+        <h2 id="formTitulo">Nuevo Edificio</h2>
+        <input type="hidden" id="edificioId" value="">
+        <input type="text" id="nombre" placeholder="Nombre" required>
+        <input type="text" id="direccion" placeholder="Dirección">
+        <input type="text" id="telefono" placeholder="Teléfono">
+        <button onclick="guardarEdificio()">Guardar</button>
+        <button onclick="ocultarFormulario()">Cancelar</button>
     </section>
+
     <section class="tabla">
         <table>
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Dirección</th>
-                    <th>Teléfono</th>
-                </tr>
+                <tr><th>ID</th><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Acciones</th></tr>
             </thead>
-            <tbody id="tablaEdificios">
-            </tbody>
+            <tbody id="tablaEdificios"></tbody>
         </table>
     </section>
 </main>
+
 <script>
-function mostrarFormulario(){
-    document.getElementById("formulario")
-            .classList.toggle("oculto");
-}
-function listarEdificios(){
-    fetch("/edificios")
-    .then(res => res.json())
-    .then(data => {
-        let filas = "";
-        data.forEach(edificio => {
-            filas += `
-            <tr>
-                <td>${edificio.id}</td>
-                <td>${edificio.nombre}</td>
-                <td>${edificio.direccion}</td>
-                <td>${edificio.telefono}</td>
-            </tr>
-            `;
-        });
-        document.getElementById("tablaEdificios")
-                .innerHTML = filas;
-    });
-}
-function guardarEdificio(){
-    const token = localStorage.getItem("token");
-    fetch("/edificios", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-            nombre: document.getElementById("nombre").value,
-            direccion: document.getElementById("direccion").value,
-            telefono: document.getElementById("telefono").value
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensaje);
-        listarEdificios();
-    });
-}
-function editarEdificio(){
-    const id = prompt("ID del edificio:");
-    const nombre = prompt("Nuevo nombre:");
-    const direccion = prompt("Nueva dirección:");
-    const telefono = prompt("Nuevo teléfono:");
-    const token = localStorage.getItem("token");
-    fetch(`/edificios/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-            nombre,
-            direccion,
-            telefono
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensaje);
-        listarEdificios();
-    });
-}
-function eliminarEdificio(){
-    const id = prompt("ID del edificio:");
-    const token = localStorage.getItem("token");
-    fetch(`/edificios/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": "Bearer " + token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+    }
+
+    function mostrarMensaje(texto, esError = false) {
+        const msgDiv = document.getElementById('mensaje');
+        msgDiv.textContent = texto;
+        msgDiv.className = 'mensaje-flotante' + (esError ? ' mensaje-error' : '');
+        msgDiv.style.display = 'block';
+        setTimeout(() => msgDiv.style.display = 'none', 3000);
+    }
+
+    function ocultarFormulario() {
+        document.getElementById('formulario').classList.add('oculto');
+        document.getElementById('edificioId').value = '';
+        document.getElementById('formTitulo').innerText = 'Nuevo Edificio';
+        document.getElementById('nombre').value = '';
+        document.getElementById('direccion').value = '';
+        document.getElementById('telefono').value = '';
+    }
+
+    function mostrarFormularioNuevo() {
+        ocultarFormulario();
+        document.getElementById('formulario').classList.remove('oculto');
+    }
+
+    function mostrarFormularioEdicion(edificio) {
+        document.getElementById('edificioId').value = edificio.id;
+        document.getElementById('nombre').value = edificio.nombre;
+        document.getElementById('direccion').value = edificio.direccion || '';
+        document.getElementById('telefono').value = edificio.telefono || '';
+        document.getElementById('formTitulo').innerText = 'Editar Edificio';
+        document.getElementById('formulario').classList.remove('oculto');
+    }
+
+    async function listarEdificios() {
+        try {
+            const response = await fetch('/edificios');
+            if (!response.ok) throw new Error('Error al obtener datos');
+            const data = await response.json();
+            let filas = '';
+            data.forEach(ed => {
+                filas += `
+                    <tr>
+                        <td>${ed.id}</td>
+                        <td>${ed.nombre}</td>
+                        <td>${ed.direccion || '-'}</td>
+                        <td>${ed.telefono || '-'}</td>
+                        <td>
+                            <button class="btn-editar" onclick='editarEdificio(${JSON.stringify(ed)})'>Editar</button>
+                            <button class="btn-eliminar" onclick="eliminarEdificio(${ed.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('tablaEdificios').innerHTML = filas;
+        } catch (error) {
+            console.error(error);
+            mostrarMensaje('Error al cargar edificios', true);
         }
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensaje);
-        listarEdificios();
-    });
-}
-listarEdificios();
+    }
+
+    function editarEdificio(edificio) {
+        mostrarFormularioEdicion(edificio);
+    }
+
+    async function guardarEdificio() {
+        const id = document.getElementById('edificioId').value;
+        const edificio = {
+            nombre: document.getElementById('nombre').value,
+            direccion: document.getElementById('direccion').value,
+            telefono: document.getElementById('telefono').value
+        };
+
+        const url = id ? `/edificios/${id}` : '/edificios';
+        const method = id ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(edificio)
+            });
+            const result = await response.json();
+            if (response.ok) {
+                mostrarMensaje(result.mensaje);
+                listarEdificios();
+                ocultarFormulario();
+            } else {
+                mostrarMensaje(result.mensaje || 'Error al guardar', true);
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión', true);
+        }
+    }
+
+    async function eliminarEdificio(id) {
+        if (!confirm('¿Está seguro de eliminar este edificio?')) return;
+        try {
+            const response = await fetch(`/edificios/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                mostrarMensaje(result.mensaje);
+                listarEdificios();
+            } else {
+                mostrarMensaje(result.mensaje || 'Error al eliminar', true);
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión', true);
+        }
+    }
+
+    // Cargar lista al inicio
+    listarEdificios();
 </script>
 </body>
 </html>

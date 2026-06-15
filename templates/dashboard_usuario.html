@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Usuario - Sistema de Laboratorios</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS personalizado (reutilizamos dashboard.css, pero si no existe, se incluyen estilos básicos) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        /* Estilos adicionales para formularios dentro de tarjetas */
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .card-header {
+            background-color: #1e3a5f;
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 12px 20px;
+        }
+        .btn-primary {
+            background-color: #1e3a5f;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0f2b44;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .table th {
+            background-color: #1e3a5f;
+            color: white;
+        }
+        .estado-pendiente { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+        .estado-aprobada { background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+        .estado-rechazada { background: #f8d7da; color: #721c24; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo"><i class="fas fa-flask"></i> LabManager - Usuario</div>
+    <div class="dropdown">
+        <button class="btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle"></i> <span id="nombreUsuario">Cargando...</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main class="contenedor">
+    <!-- Estadísticas personales -->
+    <section class="estadisticas" id="estadisticas">
+        <div class="card">Cargando estadísticas...</div>
+    </section>
+
+    <div class="row">
+        <!-- Columna izquierda: Disponibilidad y solicitar reserva -->
+        <div class="col-md-6">
+            <!-- Consulta disponibilidad -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-search"></i> Consultar Disponibilidad</div>
+                <div class="card-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-5">
+                            <label>Fecha</label>
+                            <input type="date" id="fechaConsulta" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Hora inicio</label>
+                            <input type="time" id="horaInicio" class="form-control" value="08:00">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Hora fin</label>
+                            <input type="time" id="horaFin" class="form-control" value="18:00">
+                        </div>
+                        <div class="col-md-1">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="consultarDisponibilidad()"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div id="resultadoDisponibilidad"></div>
+                </div>
+            </div>
+
+            <!-- Solicitar reserva -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-calendar-plus"></i> Solicitar Reserva</div>
+                <div class="card-body">
+                    <form id="formReserva">
+                        <div class="mb-2">
+                            <label>Laboratorio</label>
+                            <select id="labReserva" class="form-select" required></select>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4">
+                                <label>Fecha</label>
+                                <input type="date" id="fechaReserva" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Hora inicio</label>
+                                <input type="time" id="horaInicioReserva" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Hora fin</label>
+                                <input type="time" id="horaFinReserva" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label>Motivo</label>
+                            <textarea id="motivoReserva" class="form-control" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Solicitar Reserva</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Mis reservas y reportar incidencia -->
+        <div class="col-md-6">
+            <!-- Mis reservas -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-list-alt"></i> Mis Reservas</div>
+                <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                    <div id="misReservasTabla">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- Reportar incidencia -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-exclamation-triangle"></i> Reportar Incidencia</div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label>Laboratorio</label>
+                        <select id="labIncidencia" class="form-select"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Equipo (opcional)</label>
+                        <input type="text" id="equipoIncidencia" class="form-control" placeholder="Ej: PC-101-01">
+                    </div>
+                    <div class="mb-2">
+                        <label>Tipo</label>
+                        <select id="tipoIncidencia" class="form-select">
+                            <option value="hardware">Hardware</option>
+                            <option value="software">Software</option>
+                            <option value="infraestructura">Infraestructura</option>
+                            <option value="red">Red</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Descripción</label>
+                        <textarea id="descIncidencia" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>Prioridad</label>
+                        <select id="prioridadIncidencia" class="form-select">
+                            <option value="baja">Baja</option>
+                            <option value="media">Media</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-warning w-100" onclick="reportarIncidencia()">Reportar Incidencia</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    let usuarioRol = '';
+
+    // ========== CARGAR DATOS INICIALES ==========
+    async function cargarDatosIniciales() {
+        await cargarEstadisticas();
+        await cargarLaboratoriosSelect();
+        await cargarMisReservas();
+    }
+
+    async function cargarEstadisticas() {
+        try {
+            const res = await fetch('/dashboard-stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+                const stats = await res.json();
+                usuarioRol = stats.rol;
+                document.getElementById('nombreUsuario').innerText = usuarioRol === 'docente' ? 'Docente' : 'Estudiante';
+
+                let html = `
+                    <div class="card"><h2>${stats.mis_reservas || 0}</h2><p>Mis Reservas</p></div>
+                    <div class="card"><h2>${stats.reservas_aprobadas || 0}</h2><p>Aprobadas</p></div>
+                    <div class="card"><h2>${stats.mis_incidencias || 0}</h2><p>Mis Incidencias</p></div>
+                `;
+                document.getElementById('estadisticas').innerHTML = html;
+            } else {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        } catch (error) {
+            console.error(error);
+            document.getElementById('estadisticas').innerHTML = '<div class="card">Error al cargar datos</div>';
+        }
+    }
+
+    async function cargarLaboratoriosSelect() {
+        const res = await fetch('/laboratorios');
+        const labs = await res.json();
+        let opts = '<option value="">Seleccione...</option>';
+        labs.forEach(l => opts += `<option value="${l.id}">${l.nombre}</option>`);
+        document.getElementById('labReserva').innerHTML = opts;
+        document.getElementById('labIncidencia').innerHTML = opts;
+    }
+
+    // ========== CONSULTAR DISPONIBILIDAD ==========
+    window.consultarDisponibilidad = async () => {
+    const fecha = document.getElementById('fechaConsulta').value;
+    const horaInicio = document.getElementById('horaInicio').value;
+    const horaFin = document.getElementById('horaFin').value;
+    if (!fecha) {
+        alert('Seleccione una fecha');
+        return;
+    }
+    try {
+        const res = await fetch(`/disponibilidad?fecha=${fecha}&hora_inicio=${horaInicio}&hora_fin=${horaFin}`);
+        const data = await res.json();
+        let html = '<h6>Laboratorios disponibles:</h6><ul class="list-group">';
+        if (data.laboratorios_disponibles.length === 0) {
+            html += '<li class="list-group-item">No hay laboratorios disponibles en ese horario.</li>';
+        } else {
+            data.laboratorios_disponibles.forEach(lab => {
+                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${lab.nombre}</strong> (Edificio: ${lab.edificio_nombre})<br>
+                                Capacidad: ${lab.capacidad}
+                            </div>
+                            <button class="btn btn-sm btn-success" onclick="prepararReservaDesdeDisponibilidad(${lab.id}, '${lab.nombre}', '${fecha}', '${horaInicio}', '${horaFin}')">Reservar</button>
+                        </li>`;
+            });
+        }
+        html += '</ul>';
+        document.getElementById('resultadoDisponibilidad').innerHTML = html;
+            } catch (error) {
+                alert('Error al consultar disponibilidad');
+            }
+        };
+
+    // ========== SOLICITAR RESERVA ==========
+    document.getElementById('formReserva').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const labId = document.getElementById('labReserva').value;
+        if (!labId) {
+            alert('Seleccione un laboratorio');
+            return;
+        }
+        const data = {
+            laboratorio_id: parseInt(labId),
+            fecha: document.getElementById('fechaReserva').value,
+            hora_inicio: document.getElementById('horaInicioReserva').value,
+            hora_fin: document.getElementById('horaFinReserva').value,
+            motivo: document.getElementById('motivoReserva').value
+        };
+        try {
+            const res = await fetch('/reservas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.mensaje);
+            if (res.ok) {
+                cargarMisReservas();
+                document.getElementById('formReserva').reset();
+            }
+        } catch (error) {
+            alert('Error de conexión');
+        }
+    });
+
+    // ========== MIS RESERVAS ==========
+    async function cargarMisReservas() {
+        try {
+            const res = await fetch('/mis-reservas', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const reservas = await res.json();
+            if (!reservas.length) {
+                document.getElementById('misReservasTabla').innerHTML = '<p class="text-muted">No tiene reservas.</p>';
+                return;
+            }
+            let html = `<table class="table table-sm">
+                            <thead><tr><th>Laboratorio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr></thead>
+                            <tbody>`;
+            reservas.forEach(r => {
+                let estadoClass = '';
+                if (r.estado === 'pendiente') estadoClass = 'estado-pendiente';
+                else if (r.estado === 'aprobada') estadoClass = 'estado-aprobada';
+                else estadoClass = 'estado-rechazada';
+                html += `<tr>
+                            <td>${r.laboratorio_nombre}</td>
+                            <td>${r.fecha}</td>
+                            <td>${r.hora_inicio} - ${r.hora_fin}</td>
+                            <td><span class="${estadoClass}">${r.estado}</span></td>
+                         </tr>`;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('misReservasTabla').innerHTML = html;
+        } catch (error) {
+            document.getElementById('misReservasTabla').innerHTML = '<p class="text-danger">Error al cargar reservas</p>';
+        }
+    }
+
+    // ========== REPORTAR INCIDENCIA ==========
+    window.reportarIncidencia = async () => {
+        const labId = document.getElementById('labIncidencia').value;
+        if (!labId) {
+            alert('Seleccione un laboratorio');
+            return;
+        }
+        const descripcion = document.getElementById('descIncidencia').value.trim();
+        if (!descripcion) {
+            alert('Describa la incidencia');
+            return;
+        }
+        const data = {
+            laboratorio_id: parseInt(labId),
+            equipo_id: document.getElementById('equipoIncidencia').value || null,
+            tipo: document.getElementById('tipoIncidencia').value,
+            descripcion: descripcion,
+            prioridad: document.getElementById('prioridadIncidencia').value,
+            estado: 'reportada'
+        };
+        try {
+            const res = await fetch('/incidencias', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.mensaje);
+            if (res.ok) {
+                document.getElementById('descIncidencia').value = '';
+                document.getElementById('equipoIncidencia').value = '';
+                cargarEstadisticas(); // para actualizar contador de incidencias
+            }
+        } catch (error) {
+            alert('Error de conexión');
+        }
+    };
+
+    function cerrarSesion() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+
+    cargarDatosIniciales();
+</script>
+</body>
+</html>

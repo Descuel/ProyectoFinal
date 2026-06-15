@@ -3,78 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Laboratorios</title>
+    <title>S.I.G.L.I. - Sistema Integrado de Gestión de Laboratorios de Informática</title>
 
+    <!-- Bootstrap 5 CSS (necesario para las tablas, cards, etc.) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome (para los íconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tu CSS personalizado (debe ir después de Bootstrap para poder sobrescribir si quieres) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
     <nav class="navbar">
         <div class="logo">
-            Sistema de Laboratorios
+            <img src="{{ url_for('static', filename='img/tres.png') }}" alt="SIGLI Logo">
+            <span><strong>S.I.G.L.I.</strong></span>
         </div>
         <button class="login-btn" onclick="window.location.href='/login'">Iniciar Sesión</button>
     </nav>
+
     <main class="contenedor">
         <section class="bienvenida">
-            <h1>Sistema de Gestión de Laboratorios de Computación</h1>
+            <h1>Sistema Integrado de Gestión de Laboratorios de Informática.</h1>
             <p>
-                Plataforma destinada a la administración de edificios,
-                laboratorios, equipos, reservas e incidencias dentro
-                de los laboratorios de computación.
+                Plataforma destinada a la administración de los laboratorios de la carrera de informática.
             </p>
         </section>
+
         <section class="edificios">
-    <h2 class="titulo-seccion">
-        Edificios Disponibles
-    </h2>
-    <div class="edificios-grid">
-        <div class="edificio-card">
-            <img src="{{ url_for('static', filename='img/edificio1.jpg') }}">
-            <div class="edificio-info">
-                <h3>FACULTAD DE INFORMATICA</h3>
-                <p>
-                    Creada en 1973, la primera Carrera en el Sistema Universitario Boliviano, pionera en el campo de la Informática con el objetivo primordial de la formación profesional con excelencia. En su plan curricular se encuentran asignaturas de Ciencias de la Computación, Informática, Matemáticas, Sistemas y Gestión conforme a las necesidades del mercado profesional.
-                </p>
-                <button>Ver Detalles</button>
+            <h2 class="titulo-seccion">Edificios Disponibles</h2>
+            <div class="edificios-grid">
+                <div class="edificio-card">
+                    <img src="{{ url_for('static', filename='img/infcentral.jpg') }}" alt="Facultad de Informática">
+                    <div class="edificio-info">
+                        <h3>FACULTAD DE INFORMATICA</h3>
+                        <p>
+                            Creada en 1973, la primera Carrera en el Sistema Universitario Boliviano, pionera en el campo de la Informática con el objetivo primordial de la formación profesional con excelencia. En su plan curricular se encuentran asignaturas de Ciencias de la Computación, Informática, Matemáticas, Sistemas y Gestión conforme a las necesidades del mercado profesional.
+                        </p>
+                        <button onclick="window.open('http://informatica.umsa.bo/', '_blank')">Ir a Sitio</button>
+                    </div>
+                </div>
+                <div class="edificio-card">
+                    <img src="{{ url_for('static', filename='img/lasin.jpg') }}" alt="LASIN">
+                    <div class="edificio-info">
+                        <h3>LASIN - Laboratorio superior de informatica</h3>
+                        <p>
+                            En LASIN, nos comprometemos a ofrecer únicamente la mejor educación en informática, facilitando el acceso a recursos tecnológicos de última generación y un entorno de aprendizaje efectivo.
+                        </p>
+                        <button onclick="window.open('https://lasin.fcpn.edu.bo/', '_blank')">Ir a Sitio</button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="edificio-card">
-            <img src="{{ url_for('static', filename='img/edificio2.jpg') }}">
-            <div class="edificio-info">
-                <h3>LASIN - Laboratorio superior de informatica</h3>
-                <p>
-                    En LASIN, nos comprometemos a ofrecer únicamente la mejor educación en informática, facilitando el acceso a recursos tecnológicos de última generación y un entorno de aprendizaje efectivo.
-                </p>
-                <button>Ver Detalles</button>
+        </section>
+
+        <!-- Sección de tablas de laboratorios (con Bootstrap funcionando) -->
+        <section class="laboratorios-tablas">
+            <h2 class="titulo-seccion">Estado actual de laboratorios</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-check-circle"></i> Laboratorios Disponibles
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr><th>ID</th><th>Nombre</th><th>Ubicación (Piso)</th><th>Estado</th></tr>
+                                    </thead>
+                                    <tbody id="disponiblesBody">
+                                        <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-danger text-white">
+                            <i class="fas fa-times-circle"></i> Laboratorios Ocupados / En Mantenimiento
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr><th>ID</th><th>Nombre</th><th>Ubicación (Piso)</th><th>Estado</th></tr>
+                                    </thead>
+                                    <tbody id="ocupadosBody">
+                                        <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</section>
-<section class="modulos">
-    <div class="tarjeta">
-        <h2>Laboratorios</h2>
-        <p>Gestión de laboratorios disponibles.</p>
-        <button>Ver</button>
-    </div>
-    <div class="tarjeta">
-        <h2>Equipos</h2>
-        <p>Control y seguimiento de equipos informáticos.</p>
-        <button>Ver</button>
-    </div>
-    <div class="tarjeta">
-        <h2>Reservas</h2>
-        <p>Administración de solicitudes y reservas.</p>
-        <button>Ver</button>
-    </div>
-    <div class="tarjeta">
-        <h2>Incidencias</h2>
-        <p>Registro y seguimiento de problemas reportados.</p>
-        <button>Ver</button>
-    </div>
-</section>
+        </section>
     </main>
+
     <footer>
         Sistema de Gestión de Laboratorios
     </footer>
+
+    <!-- Bootstrap JS (opcional, pero necesario para algunos componentes; si no usas, no hace falta) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function cargarLaboratoriosEstado() {
+            try {
+                const response = await fetch('/laboratorios');
+                const laboratorios = await response.json();
+
+                // Filtrar disponibles y no disponibles
+                const disponibles = laboratorios.filter(lab => lab.estado === 'disponible');
+                const ocupados = laboratorios.filter(lab => lab.estado !== 'disponible');
+
+                // Llenar tabla de disponibles
+                const disponiblesBody = document.getElementById('disponiblesBody');
+                if (disponibles.length === 0) {
+                    disponiblesBody.innerHTML = '<tr><td colspan="4" class="text-center">No hay laboratorios disponibles</td></tr>';
+                } else {
+                    disponiblesBody.innerHTML = '';
+                    disponibles.forEach(lab => {
+                        const row = `<tr>
+                                        <td>${lab.id}</td>
+                                        <td>${lab.nombre}</td>
+                                        <td>Piso ${lab.piso_id}</td>
+                                        <td><span class="badge bg-success">${lab.estado}</span></td>
+                                     </tr>`;
+                        disponiblesBody.innerHTML += row;
+                    });
+                }
+
+                // Llenar tabla de ocupados/mantenimiento
+                const ocupadosBody = document.getElementById('ocupadosBody');
+                if (ocupados.length === 0) {
+                    ocupadosBody.innerHTML = '<tr><td colspan="4" class="text-center">No hay laboratorios ocupados o en mantenimiento</td></tr>';
+                } else {
+                    ocupadosBody.innerHTML = '';
+                    ocupados.forEach(lab => {
+                        let badgeClass = lab.estado === 'ocupado' ? 'bg-warning' : 'bg-secondary';
+                        let estadoTexto = lab.estado === 'ocupado' ? 'Ocupado' : 'Mantenimiento';
+                        const row = `<tr>
+                                        <td>${lab.id}</td>
+                                        <td>${lab.nombre}</td>
+                                        <td>Piso ${lab.piso_id}</td>
+                                        <td><span class="badge ${badgeClass}">${estadoTexto}</span></td>
+                                     </tr>`;
+                        ocupadosBody.innerHTML += row;
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar laboratorios:', error);
+                document.getElementById('disponiblesBody').innerHTML = '<tr><td colspan="4" class="text-danger">Error al cargar datos</td></tr>';
+                document.getElementById('ocupadosBody').innerHTML = '<tr><td colspan="4" class="text-danger">Error al cargar datos</td></tr>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarLaboratoriosEstado);
+    </script>
 </body>
 </html>

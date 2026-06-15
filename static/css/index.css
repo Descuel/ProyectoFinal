@@ -16,9 +16,16 @@ body{
     align-items:center;
     padding:15px 40px;
 }
+
 .logo{
-    font-size:24px;
-    font-weight:bold;
+    display:flex;
+    align-items:center;
+}
+
+.logo img{
+    height:80px; /* ajusta este valor */
+    width:auto;
+    object-fit:contain;
 }
 .menu{
     display:flex;
@@ -159,4 +166,38 @@ footer{
 
 .edificio-info button:hover{
     background:#16324f;
+}
+.laboratorios-tablas {
+    margin-top: 40px;
+}
+.card-header i {
+    margin-right: 8px;
+}
+.table th {
+    background-color: #f8f9fc;
+    color: #1e3a5f;
+}
+.badge {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+}
+/* Sobrescribir algunos estilos de Bootstrap para mantener la paleta */
+.table-dark {
+    background-color: #1e3a5f !important;
+}
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+.card-header.bg-success {
+    background-color: #1e3a5f !important;
+}
+.card-header.bg-danger {
+    background-color: #1e3a5f !important;
 }

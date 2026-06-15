@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario - Sistema de Laboratorios</title>
+    <!-- FontAwesome (opcional, para íconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS personalizado (mismo estilo que login.css) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/registro.css') }}">
+</head>
+<body>
+<div class="registro-container">
+    <div class="registro-card">
+        <h1><i class="fas fa-user-plus"></i> Registro de Usuario</h1>
+        <p class="subtitulo">Completa el formulario para crear tu cuenta</p>
+
+        <form id="formRegistro">
+            <div class="row">
+                <div class="col">
+                    <label>Usuario *</label>
+                    <input type="text" id="codigo" placeholder="Ej: juanperez, doc001, 20240001" required>
+                </div>
+                <div class="col">
+                    <label>Nombre completo *</label>
+                    <input type="text" id="nombre" placeholder="Nombres y apellidos" required>
+                </div>
+            </div>
+
+            <label>Correo electrónico *</label>
+            <input type="email" id="email" placeholder="ejemplo@universidad.edu" required>
+
+            <label>Rol *</label>
+            <select id="rol" required>
+                <option value="">Seleccione...</option>
+                <option value="estudiante">Estudiante</option>
+                <option value="docente">Docente</option>
+            </select>
+
+            <!-- Campos específicos -->
+            <div id="campoEstudiante" style="display: none;">
+                <label>Carrera</label>
+                <input type="text" id="carrera" placeholder="Ej: Ingeniería Informática">
+            </div>
+
+            <div id="campoDocente" style="display: none;">
+                <label>Departamento</label>
+                <input type="text" id="departamento" placeholder="Ej: Ciencias de la Computación">
+            </div>
+
+            <label>Teléfono</label>
+            <input type="text" id="telefono" placeholder="Opcional">
+
+            <label>Contraseña *</label>
+            <input type="password" id="password" placeholder="Mínimo 6 caracteres" required>
+
+            <button type="submit">Registrarse</button>
+        </form>
+
+        <div class="text-center" style="margin-top: 15px;">
+            <a href="/login">¿Ya tienes cuenta? Inicia sesión aquí</a>
+        </div>
+        <div id="mensaje"></div>
+        <div class="text-center" style="margin-top: 15px;">
+            <a href="/" class="btn-volver">← Volver al inicio</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar/ocultar campos según el rol seleccionado
+    document.getElementById('rol').addEventListener('change', function() {
+        const rol = this.value;
+        document.getElementById('campoEstudiante').style.display = rol === 'estudiante' ? 'block' : 'none';
+        document.getElementById('campoDocente').style.display = rol === 'docente' ? 'block' : 'none';
+    });
+
+    document.getElementById('formRegistro').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rol = document.getElementById('rol').value;
+        const data = {
+            codigo: document.getElementById('codigo').value,
+            nombre: document.getElementById('nombre').value,
+            email: document.getElementById('email').value,
+            rol: rol,
+            carrera: rol === 'estudiante' ? document.getElementById('carrera').value : null,
+            departamento: rol === 'docente' ? document.getElementById('departamento').value : null,
+            telefono: document.getElementById('telefono').value || null,
+            password: document.getElementById('password').value
+        };
+        try {
+            const res = await fetch('/registrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            const msgDiv = document.getElementById('mensaje');
+            if (res.ok) {
+                msgDiv.innerHTML = '<div class="mensaje-exito">✅ ' + result.mensaje + ' <a href="/login">Iniciar sesión</a></div>';
+                document.getElementById('formRegistro').reset();
+                document.getElementById('campoEstudiante').style.display = 'none';
+                document.getElementById('campoDocente').style.display = 'none';
+            } else {
+                msgDiv.innerHTML = '<div class="mensaje-error">❌ ' + (result.mensaje || 'Error al registrar') + '</div>';
+            }
+        } catch (error) {
+            document.getElementById('mensaje').innerHTML = '<div class="mensaje-error">❌ Error de conexión con el servidor</div>';
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Incidencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edificios.css') }}">
+    <style>
+        .estado-reportada { background-color: #f8d7da; color: #721c24; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+        .estado-proceso { background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+        .estado-resuelta { background-color: #d4edda; color: #155724; padding: 5px 10px; border-radius: 20px; display: inline-block; }
+        .btn-editar { background-color: #ffc107; color: #000; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 5px; }
+        .btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; }
+        .mensaje-flotante { position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #4CAF50; color: white; border-radius: 5px; z-index: 1000; display: none; }
+        .mensaje-error { background: #f44336; }
+        select, button { cursor: pointer; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">Sistema de Laboratorios</div>
+    <button class="volver" onclick="window.location.href='/dashboard'">Volver</button>
+</nav>
+<main class="contenedor">
+    <section class="titulo">
+        <h1>Gestión de Incidencias</h1>
+        <p>Administrar todas las incidencias reportadas.</p>
+    </section>
+
+    <div id="mensaje" class="mensaje-flotante"></div>
+
+    <section class="tabla" id="tablaIncidencias">
+        <div class="text-center">Cargando incidencias...</div>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    function mostrarMensaje(texto, esError = false) {
+        const msgDiv = document.getElementById('mensaje');
+        msgDiv.textContent = texto;
+        msgDiv.className = `mensaje-flotante ${esError ? 'mensaje-error' : ''}`;
+        msgDiv.style.display = 'block';
+        setTimeout(() => msgDiv.style.display = 'none', 3000);
+    }
+
+    async function cargarIncidencias() {
+        try {
+            const response = await fetch('/incidencias', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!response.ok) throw new Error('Error al obtener incidencias');
+            const incidencias = await response.json();
+
+            if (incidencias.length === 0) {
+                document.getElementById('tablaIncidencias').innerHTML = '<div class="alert alert-info">No hay incidencias registradas.</div>';
+                return;
+            }
+
+            let html = `
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Laboratorio ID</th><th>Equipo ID</th><th>Usuario ID</th>
+                            <th>Tipo</th><th>Descripción</th><th>Prioridad</th><th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const inc of incidencias) {
+                // Clase de estado para colores
+                let estadoClass = '';
+                if (inc.estado === 'reportada') estadoClass = 'estado-reportada';
+                else if (inc.estado === 'en_proceso') estadoClass = 'estado-proceso';
+                else estadoClass = 'estado-resuelta';
+
+                html += `
+                    <tr>
+                        <td>${inc.id}</td>
+                        <td>${inc.laboratorio_id}</td>
+                        <td>${inc.equipo_id || '-'}</td>
+                        <td>${inc.usuario_id}</td>
+                        <td>${inc.tipo || '-'}</td>
+                        <td>${inc.descripcion.substring(0, 80)}${inc.descripcion.length > 80 ? '…' : ''}</td>
+                        <td>
+                            <select id="prioridad_${inc.id}" class="form-select form-select-sm" onchange="cambiarPrioridad(${inc.id}, this.value)">
+                                <option value="baja" ${inc.prioridad === 'baja' ? 'selected' : ''}>Baja</option>
+                                <option value="media" ${inc.prioridad === 'media' ? 'selected' : ''}>Media</option>
+                                <option value="alta" ${inc.prioridad === 'alta' ? 'selected' : ''}>Alta</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select id="estado_${inc.id}" class="form-select form-select-sm" onchange="cambiarEstado(${inc.id}, this.value)">
+                                <option value="reportada" ${inc.estado === 'reportada' ? 'selected' : ''}>Reportada</option>
+                                <option value="en_proceso" ${inc.estado === 'en_proceso' ? 'selected' : ''}>En proceso</option>
+                                <option value="resuelta" ${inc.estado === 'resuelta' ? 'selected' : ''}>Resuelta</option>
+                            </select>
+                        </td>
+                        
+                    </tr>
+                `;
+            }
+            html += `</tbody></table>`;
+            document.getElementById('tablaIncidencias').innerHTML = html;
+        } catch (error) {
+            document.getElementById('tablaIncidencias').innerHTML = `<div class="alert alert-danger">Error al cargar incidencias: ${error.message}</div>`;
+        }
+    }
+
+    // Cambiar prioridad (sin recargar página)
+    window.cambiarPrioridad = async (id, nuevaPrioridad) => {
+        try {
+            const response = await fetch(`/incidencias/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ prioridad: nuevaPrioridad })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                mostrarMensaje(data.mensaje);
+                // No es necesario recargar toda la tabla, pero lo hacemos por simplicidad
+                cargarIncidencias();
+            } else {
+                mostrarMensaje(data.mensaje || 'Error al actualizar prioridad', true);
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión', true);
+        }
+    };
+
+    // Cambiar estado
+    window.cambiarEstado = async (id, nuevoEstado) => {
+        try {
+            const response = await fetch(`/incidencias/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ estado: nuevoEstado })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                mostrarMensaje(data.mensaje);
+                cargarIncidencias();
+            } else {
+                mostrarMensaje(data.mensaje || 'Error al actualizar estado', true);
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión', true);
+        }
+    };
+    
+    // Iniciar
+    cargarIncidencias();
+</script>
+</body>
+</html>
